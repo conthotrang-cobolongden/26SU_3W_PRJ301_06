@@ -21,6 +21,6 @@
                 response.sendRedirect("login.jsp");
             }
         %>
-        <h1>Mot so tinh nang cua nguoi dung thong thuong!</h1>
+        <h1>Trang chu cua nguoi dung!</h1>
     </body>
 </html>

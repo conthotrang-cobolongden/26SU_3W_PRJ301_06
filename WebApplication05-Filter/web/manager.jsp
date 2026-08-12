@@ -24,6 +24,6 @@
                 request.getRequestDispatcher("error.jsp").forward(request, response);
             }
         %>
-        <h1>Mot so tinh nang cua manager!</h1>
+        <h1>Trang chu danh cho manager!</h1>
     </body>
 </html>

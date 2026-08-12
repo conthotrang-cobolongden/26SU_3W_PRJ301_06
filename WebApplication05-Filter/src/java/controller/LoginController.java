@@ -56,7 +56,7 @@ public class LoginController extends HttpServlet {
                 
             } else { // status is false
                 url = "error.jsp";
-                request.setAttribute("errorMessage", "Your account is locked!");
+                request.setAttribute("errorMessage", "Your account is inactived!");
             }
         } else {
             request.setAttribute("errorMessage", "Invalid username or password!");
