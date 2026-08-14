@@ -62,7 +62,6 @@ public class LoginController extends HttpServlet {
             request.setAttribute("errorMessage", "Invalid username or password!");
             url = "login.jsp";
         }
-
         // Chuyen trang
         request.getRequestDispatcher(url).forward(request, response);
     }
