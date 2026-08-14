@@ -4,8 +4,13 @@
  */
 package model;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import utils.DbUtils;
 
 /**
  *
@@ -13,69 +18,216 @@ import java.util.List;
  */
 public class UserDAO implements IDAO<UserDTO, String> {
 
-    private static final List<UserDTO> fakeDB = new ArrayList<>();
-
-    static {
-        fakeDB.add(new UserDTO("admin", "1", "Admin", "ADM", true));
-        fakeDB.add(new UserDTO("u2", "1", "Tran Thi Binh", "USR", true));
-        fakeDB.add(new UserDTO("u3", "1", "Le Nhat Tung", "MNG", true));
-        fakeDB.add(new UserDTO("u4", "1", "Hoang Van Khoe", "USR", false));
+    // =============================================
+    // Convert a single row from ResultSet to UserDTO object
+    // =============================================
+    private UserDTO mapRow(ResultSet rs) throws SQLException {
+        UserDTO user = new UserDTO();
+        user.setUserID(rs.getString("userID"));
+        user.setFullName(rs.getNString("fullName")); // Use getNString for Unicode/Vietnamese
+        user.setPassword(rs.getString("password"));
+        user.setRoleID(rs.getString("roleID"));
+        user.setStatus(rs.getBoolean("status"));
+        return user;
     }
 
+    // SELECT => chi xem du lieu => ResultSet  ==> executeQuery()
+    // INSERT, UPDATE, DELETE => co lam thay doi du lieu => int -> la so dong bi thay doi => executeUpdate()
     @Override
     public boolean add(UserDTO t) {
-        if (t == null || t.getUserID() == null || t.getUserID().trim().isEmpty()) {
-            return false;
-        }
+        Connection conn = null;
+        Statement st = null;
 
-        // Kiểm tra trùng userID
-        for (UserDTO u : fakeDB) {
-            if (u.getUserID().equalsIgnoreCase(t.getUserID())) {
-                return false; // Da ton tai
+        try {
+            // Step 1: get database connection
+            conn = DbUtils.getConnection();
+
+            // Step 2: Create Statement Object
+            st = conn.createStatement();
+
+            // Step 3: Build SQL query 
+            String sql = "INSERT INTO [user]([userID],[fullName],[password],[roleID],[status]) "
+                    + "VALUES ('" + t.getUserID() + "', N'" + t.getFullName() + "', '"
+                    + t.getPassword() + "', '" + t.getRoleID() + "', " + (t.isStatus() ? 1 : 0) + ")";
+
+            // INSERT ... VALUES('u1', 'Nguyen Van A', '123456', ....);
+            // Step 4: Excute
+            int rowsAffected = st.executeUpdate(sql);
+
+            return rowsAffected > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            // Step 5: Always close resources manually
+            try {
+                if (st != null) {
+                    st.close();
+                }
+            } catch (Exception e) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
             }
         }
-        fakeDB.add(t);
-        return true;
     }
 
     @Override
     public boolean remove(UserDTO t) {
-        if (t == null || t.getUserID() == null) {
-            return false;
-        }
+        Connection conn = null;
+        Statement st = null;
 
-        return fakeDB.removeIf(u -> u.getUserID().equalsIgnoreCase(t.getUserID()));
+        try {
+            conn = DbUtils.getConnection();
+            st = conn.createStatement();
+
+            String sql = "UPDATE [user] SET status = 0 WHERE userID = '" + t.getUserID() + "'";
+            int rowsAffected = st.executeUpdate(sql);
+            return rowsAffected > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (st != null) {
+                    st.close();
+                }
+            } catch (Exception e) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+            }
+        }
     }
 
     @Override
     public boolean update(UserDTO t) {
-        if (t == null || t.getUserID() == null || t.getUserID().trim().isEmpty()) {
-            return false;
-        }
+        Connection conn = null;
+        Statement st = null;
 
-        for (int i = 0; i < fakeDB.size(); i++) {
-            if (fakeDB.get(i).getUserID().equalsIgnoreCase(t.getUserID())) {
-                fakeDB.set(i, t); // Thay the thong tin moi
-                return true;
+        try {
+            conn = DbUtils.getConnection();
+            st = conn.createStatement();
+
+            String sql = "UPDATE [user] SET "
+                    + "fullName = N'" + t.getFullName() + "', "
+                    + "password = '" + t.getPassword() + "', "
+                    + "roleID = '" + t.getRoleID() + "', "
+                    + "status = " + (t.isStatus() ? 1 : 0) + " "
+                    + "WHERE userID = '" + t.getUserID() + "'";
+
+            int rowsAffected = st.executeUpdate(sql);
+            return rowsAffected > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (st != null) {
+                    st.close();
+                }
+            } catch (Exception e) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
             }
         }
-        return false; // Khong tim thay
     }
 
     @Override
     public ArrayList<UserDTO> listAll() {
-         return new ArrayList<>(fakeDB);
+        ArrayList<UserDTO> userList = new ArrayList<>();
+        Connection conn = null;
+        Statement st = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DbUtils.getConnection();
+            st = conn.createStatement();
+            String sql = "SELECT * FROM [user]";
+            rs = st.executeQuery(sql);
+            // Loop through result set and convert each ro to UserDTO
+            while (rs.next()) {
+                userList.add(mapRow(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Close resources in reverse order
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+            }
+            try {
+                if (st != null) {
+                    st.close();
+                }
+            } catch (Exception e) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+            }
+        }
+        return userList;
     }
 
     @Override
     public UserDTO searchByID(String id) {
-       if (id == null || id.trim().isEmpty()) return null;
-        for (UserDTO u : fakeDB) {
-            if (u.getUserID().equals(id)) {
-                return u;
+        Connection conn = null;
+        Statement st = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DbUtils.getConnection();
+            st = conn.createStatement();
+
+            String sql = "SELECT * FROM [user] WHERE userID = '" + id + "'";
+            rs = st.executeQuery(sql);
+
+            // If found, convert to UserDTO object
+            if (rs.next()) {
+                return mapRow(rs);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (Exception e) {
+            }
+            try {
+                if (st != null) {
+                    st.close();
+                }
+            } catch (Exception e) {
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
             }
         }
-        return null;
+        return null; // Not found
     }
 
 }
