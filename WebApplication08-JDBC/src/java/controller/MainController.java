@@ -35,7 +35,7 @@ public class MainController extends HttpServlet {
         
         if(action!=null){
             if(action.equals("login")){
-                url = "LoginContronller";
+                url = "LoginController";
             }else  if(action.equals("logout")){
                 url = "LogoutController";
             }
