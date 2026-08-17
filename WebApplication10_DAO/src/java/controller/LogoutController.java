@@ -10,12 +10,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
  * @author Le Nhat Tung
  */
-public class MainController extends HttpServlet {
+
+public class LogoutController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -29,21 +31,12 @@ public class MainController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        String url = "login.jsp";
-        
-        String action =  request.getParameter("action");
-        
-        if(action!=null){
-            if(action.equals("login")){
-                url = "LoginController";
-            }else  if(action.equals("logout")){
-                url = "LogoutController";
-            }else  if(action.equals("searchProduct")){
-                url = "SearchProductController";
-            }
-        }
-        
-        request.getRequestDispatcher(url).forward(request, response);
+        HttpSession session = request.getSession(false); // L?y session hien tai, khong tao moi neu chua co
+        if(session!=null){
+            session.invalidate(); // Huy toan bo session (xoa het du lieu, dang nhap, ...)
+        }  
+        // Quay lai trang login
+        response.sendRedirect("login.jsp");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

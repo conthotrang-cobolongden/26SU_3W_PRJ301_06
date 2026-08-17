@@ -10,39 +10,59 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import model.UserDAO;
+import model.UserDTO;
 
 /**
  *
  * @author Le Nhat Tung
  */
-public class MainController extends HttpServlet {
+public class LoginController extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+    private UserDAO userDAO;
+
+    @Override
+    public void init() throws ServletException {
+        userDAO = new UserDAO();
+    }
+
+    public UserDTO checkLogin(String username, String password) {
+        UserDTO user = userDAO.searchByID(username);
+
+        if (user == null || !user.getPassword().equals(password)) {
+            return null;
+        }
+
+        return user;
+    }
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
+        request.setCharacterEncoding("UTF-8");
+        // De lay du lieu su dung request.getParameter
+        String username = request.getParameter("txtUsername").trim();
+        String password = request.getParameter("txtPassword").trim();
+
+        UserDTO user = checkLogin(username, password);
         String url = "login.jsp";
-        
-        String action =  request.getParameter("action");
-        
-        if(action!=null){
-            if(action.equals("login")){
-                url = "LoginController";
-            }else  if(action.equals("logout")){
-                url = "LogoutController";
-            }else  if(action.equals("searchProduct")){
-                url = "SearchProductController";
+        if (user != null) {
+            if (user.isStatus()) { // status is true
+                url = "welcome.jsp";
+                
+                HttpSession session = request.getSession();              
+                session.setAttribute("loggedUser", user);
+                //session.setMaxInactiveInterval(15);
+                
+            } else { // status is false
+                url = "error.jsp";
+                request.setAttribute("errorMessage", "Your account is locked!");
             }
+        } else {
+            request.setAttribute("errorMessage", "Invalid username or password!");
+            url = "login.jsp";
         }
-        
+        // Chuyen trang
         request.getRequestDispatcher(url).forward(request, response);
     }
 

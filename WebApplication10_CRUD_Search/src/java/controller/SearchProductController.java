@@ -6,16 +6,19 @@ package controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import model.ProductDAO;
+import model.ProductDTO;
 
 /**
  *
  * @author Le Nhat Tung
  */
-public class MainController extends HttpServlet {
+public class SearchProductController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -29,21 +32,19 @@ public class MainController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        String url = "login.jsp";
-        
-        String action =  request.getParameter("action");
-        
-        if(action!=null){
-            if(action.equals("login")){
-                url = "LoginController";
-            }else  if(action.equals("logout")){
-                url = "LogoutController";
-            }else  if(action.equals("searchProduct")){
-                url = "SearchProductController";
-            }
+        request.setCharacterEncoding("UTF-8");
+
+        String txtKeywords = request.getParameter("txtKeywords");
+        ArrayList<ProductDTO> productList = new ArrayList<>();
+        ProductDAO productDAO = new ProductDAO();
+        if (txtKeywords.trim().length() > 0) {
+            productList = productDAO.searchByName(txtKeywords);
+        }else{
+            productList = productDAO.listAll();
         }
-        
-        request.getRequestDispatcher(url).forward(request, response);
+        request.setAttribute("productList", productList);
+        request.setAttribute("txtKeywords", txtKeywords);
+        request.getRequestDispatcher("search.jsp").forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

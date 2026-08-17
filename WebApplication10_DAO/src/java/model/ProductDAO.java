@@ -110,12 +110,11 @@ public class ProductDAO extends BaseDAO implements IDAO<ProductDTO, String> {
 
         String sql = "SELECT [productID], [productName], [description],"
                 + " [price], [quantity], [image], [status], [createdAt]"
-                + " FROM [Product]";
-              //  + " WHERE [status] = ?";
+                + " FROM [Product]"
+                + " WHERE [status] = ?";
 
         return executeQuery(sql,
-               // ps -> ps.setBoolean(1, true),
-                 ps -> {},
+                ps -> ps.setBoolean(1, true),
                 mapRow);
     }
 
@@ -125,34 +124,34 @@ public class ProductDAO extends BaseDAO implements IDAO<ProductDTO, String> {
         String sql = "SELECT [productID], [productName], [description],"
                 + " [price], [quantity], [image], [status], [createdAt]"
                 + " FROM [Product]"
-                + " WHERE [productID] = ?";
-                //+ " AND [status] = ?";
+                + " WHERE [productID] = ?"
+                + " AND [status] = ?";
 
         ArrayList<ProductDTO> result = executeQuery(sql,
                 ps -> {
                     ps.setString(1, id);
-                   // ps.setBoolean(2, true);
+                    ps.setBoolean(2, true);
                 },
                 mapRow);
 
         return result.isEmpty() ? null : result.get(0);
     }
 
-    public ArrayList<ProductDTO> searchByName(String name) {
+    public ProductDTO searchByName(String name) {
 
         String sql = "SELECT [productID], [productName], [description],"
                 + " [price], [quantity], [image], [status], [createdAt]"
                 + " FROM [Product]"
-                + " WHERE [productName] LIKE ?";
-                //+ " AND [status] = ?";
+                + " WHERE [productName] = ?"
+                + " AND [status] = ?";
 
         ArrayList<ProductDTO> result = executeQuery(sql,
                 ps -> {
                     ps.setString(1, "%" + name + "%");
-                   // ps.setBoolean(2, true);
+                    ps.setBoolean(2, true);
                 },
                 mapRow);
 
-        return result;
+        return result.isEmpty() ? null : result.get(0);
     }
 }

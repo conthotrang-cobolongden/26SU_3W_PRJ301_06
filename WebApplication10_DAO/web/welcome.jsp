@@ -18,7 +18,6 @@
             UserDTO user = (userObject!=null) ? (UserDTO)userObject: null;
         %>
         <h1>Welcome, <%= user!=null? user.getFullName() : "" %> !</h1>
-        <a href="search.jsp">Search Product</a>
         <a href="MainController?action=logout">Logout</a>
     </body>
 </html>
